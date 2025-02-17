@@ -1,0 +1,36 @@
+# Ignore build artifacts
+/build/
+/sdkconfig*
+/CMakeCache.txt
+/CMakeFiles/
+/cmake-build-debug/
+/components/*/build/
+/components/*/CMakeFiles/
+.devcontainer
+# Ignore VS Code settings and extensions
+.vscode/
+*.code-workspace
+
+# Ignore Python virtual environments
+venv/
+.env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore ESP-IDF specific files
+*.bin
+*.elf
+*.map
+*.log
+*.tmp
+*.pyc
+*.bak
+flash_project_args.json
+partition_table.csv
+sdkconfig.cmake
+
+# Ignore dependency folders
+esp-idf/
+externals/
