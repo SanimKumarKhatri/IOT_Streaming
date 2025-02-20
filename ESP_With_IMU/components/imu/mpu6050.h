@@ -4,13 +4,13 @@
 #define MPU6050_I2C_SCL_IO          GPIO_NUM_22       /*!< GPIO number used for I2C master clock */
 #define MPU6050_I2C_SDA_IO          GPIO_NUM_21       /*!< GPIO number used for I2C master data  */
 #define I2C_MASTER_NUM              0                 /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
-#define MPU6050_I2C_FREQ_HZ          400000           /*!< I2C master clock frequency */
+#define MPU6050_I2C_FREQ_HZ         400000           /*!< I2C master clock frequency */
 #define I2C_MASTER_TX_BUF_DISABLE   0                 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE   0                 /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS       1000
 
 /* MPU6050 ADDRESS*/
-#define MPU6050_SENSOR_ADDRESS              0x68    /* AD0 = 0 --> address = 0b01101000*/
+#define MPU6050_SENSOR_ADDRESS              0x69    /* AD0 = 0 --> address = 0b01101000*/
                                                     /* AD0 = 1 --> address = 0b01101001*/
 
 #define MPU6050_DEFAULT_ADDRESS             0x68
@@ -45,15 +45,15 @@
 
 /* accelerometer specs */
 #define MPU6050_ACCEL_RANGE_2G              0x00
-#define MPU6050_ACCEL_RANGE_4G              0x01
-#define MPU6050_ACCEL_RANGE_8G              0x02
-#define MPU6050_ACCEL_RANGE_16G             0x03
+#define MPU6050_ACCEL_RANGE_4G              0x08
+#define MPU6050_ACCEL_RANGE_8G              0x10
+#define MPU6050_ACCEL_RANGE_16G             0x18
 
 /* gyroscope specs */
 #define MPU6050_GYRO_RANGE_250              0x00
-#define MPU6050_GYRO_RANGE_500              0x01
-#define MPU6050_GYRO_RANGE_1000             0x02
-#define MPU6050_GYRO_RANGE_2000             0x03
+#define MPU6050_GYRO_RANGE_500              0x08
+#define MPU6050_GYRO_RANGE_1000             0x10
+#define MPU6050_GYRO_RANGE_2000             0x18
 
 /* MPU6050 band values */
 #define MPU6050_BAND_260_HZ                 0x00
