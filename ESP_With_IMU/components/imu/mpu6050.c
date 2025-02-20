@@ -1,4 +1,108 @@
 
+#include "mpu6050.h"
+#include "esp_log.h"
+#include "esp_err.h"
+
+#define LOG_TAG "<mpu6050>"
+
+uint8_t buffer[14];
+
+float accel_sensitivity;
+float gyro_sensitivity;
+
+
+esp_err_t mpu6050_write_byte (uint8_t reg, uint8_t value)
+{
+    ESP_LOGI(LOG_TAG, "Writing in the 0x%x register the value 0x%x", reg, value);
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, MPU6050_SENSOR_ADDRESS << 1 | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, reg, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, value, ACK_VAL);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+    return ret;
+}
+
+
+esp_err_t mpu6050_set_accel_range (uint8_t accel_range)
+{
+    esp_err_t err =  ESP_FAIL;
+
+    switch (accel_range)
+    {
+        case MPU6050_ACCEL_RANGE_2G:
+            ESP_LOGI(LOG_TAG, "Setting accelerometer range to 2G");
+            accel_sensitivity = 16384.0;
+        break;
+
+        case MPU6050_ACCEL_RANGE_4G:
+            ESP_LOGI(LOG_TAG, "Setting accelerometer range to 4G");
+            accel_sensitivity = 8192.0;
+        break;
+
+        case MPU6050_ACCEL_RANGE_8G:
+            ESP_LOGI(LOG_TAG, "Setting accelerometer range to 8G");
+            accel_sensitivity = 4096.0;
+        break;
+
+        case MPU6050_ACCEL_RANGE_16G:
+            ESP_LOGI(LOG_TAG, "Setting accelerometer range to 16G");
+            accel_sensitivity = 2048.0;
+        break;
+
+        default:
+            ESP_LOGE(LOG_TAG, "Setting Out of range!!");
+            goto exit;
+        break;
+    }
+
+    err = mpu6050_write_byte(MPU6050_ACCEL_CONFIG_REG, accel_range);
+
+    exit:
+    return err;
+}
+
+
+esp_err_t mpu6050_set_gyro_range (uint8_t gyro_range)
+{
+    esp_err_t err = ESP_FAIL;
+
+    switch (gyro_range)
+    {
+        case MPU6050_GYRO_RANGE_250:
+            ESP_LOGI(LOG_TAG, "Setting gyroscope range to 250DPS");
+            gyro_sensitivity = 131.0;
+        break;
+        
+        case MPU6050_GYRO_RANGE_500:
+            ESP_LOGI(LOG_TAG, "Setting gyroscope range to 500DPS");
+            gyro_sensitivity = 65.5;
+        break;
+
+        case MPU6050_GYRO_RANGE_1000:
+            ESP_LOGI(LOG_TAG, "Setting gyroscope range to 1000DPS");
+            gyro_sensitivity = 32.8;
+        break;
+
+        case MPU6050_GYRO_RANGE_2000:
+            ESP_LOGI(LOG_TAG, "Setting gyroscope range to 2000DPS");
+            gyro_sensitivity = 16.4;
+        break;
+
+        default:
+            ESP_LOGE(LOG_TAG, "Setting out of range");
+            goto exit;
+        break;
+    }
+
+    err = mpu6050_write_byte(MPU6050_GYRO_CONFIG_REG, gyro_range);
+
+    exit:
+    return err;
+}
 // /**
 //  * @brief Read a sequence of bytes from a MPU9250 sensor registers
 //  */
