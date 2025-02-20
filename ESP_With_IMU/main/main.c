@@ -19,15 +19,18 @@
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
+#include "settings.h"
+#include "wifi_app.h"
 
 static const char *TAG = "main";
 
 void app_main(void)
 {
+    settings_init();
     uint8_t data[2];
     // ESP_ERROR_CHECK(i2c_master_init());
     ESP_LOGI(TAG, "I2C initialized successfully");
-
+    wifi_app_init();
     ESP_LOGI(TAG, "helloo!");
     /* Read the MPU9250 WHO_AM_I register, on power up the register should have the value 0x71 */
     // ESP_ERROR_CHECK(mpu9250_register_read(MPU9250_WHO_AM_I_REG_ADDR, data, 1));
