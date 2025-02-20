@@ -1,4 +1,14 @@
-/* Simple HTTP + SSL Server Example
+/* i2c - Simple example
+
+   Simple I2C example that shows how to initialize I2C
+   as well as reading and writing from and to registers for a sensor connected over I2C.
+
+   The sensor used in this example is a MPU9250 inertial measurement unit.
+
+   For other examples please check:
+   https://github.com/espressif/esp-idf/tree/master/examples
+
+   See README.md file to get detailed usage of this example.
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -6,211 +16,26 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <esp_wifi.h>
-#include <esp_event.h>
-#include <esp_log.h>
-#include <esp_system.h>
-#include <nvs_flash.h>
-#include <sys/param.h>
-#include "esp_netif.h"
-#include "esp_eth.h"
-#include "protocol_examples_common.h"
+#include <stdio.h>
+#include "esp_log.h"
+#include "driver/i2c.h"
 
-#include <esp_https_server.h>
-#include "esp_tls.h"
-#include "sdkconfig.h"
-
-#define LOG_TAG "<main>"
-
-/* An HTTP GET handler */
-static esp_err_t root_get_handler(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>Hello Secure World!</h1>", HTTPD_RESP_USE_STRLEN);
-
-    return ESP_OK;
-}
-
-#if CONFIG_EXAMPLE_ENABLE_HTTPS_USER_CALLBACK
-#ifdef CONFIG_ESP_TLS_USING_MBEDTLS
-static void print_peer_cert_info(const mbedtls_ssl_context *ssl)
-{
-    const mbedtls_x509_crt *cert;
-    const size_t buf_size = 1024;
-    char *buf = calloc(buf_size, sizeof(char));
-    if (buf == NULL) {
-        ESP_LOGE(TAG, "Out of memory - Callback execution failed!");
-        return;
-    }
-
-    // Logging the peer certificate info
-    cert = mbedtls_ssl_get_peer_cert(ssl);
-    if (cert != NULL) {
-        mbedtls_x509_crt_info((char *) buf, buf_size - 1, "    ", cert);
-        ESP_LOGI(TAG, "Peer certificate info:\n%s", buf);
-    } else {
-        ESP_LOGW(TAG, "Could not obtain the peer certificate!");
-    }
-
-    free(buf);
-}
-#endif
-/**
- * Example callback function to get the certificate of connected clients,
- * whenever a new SSL connection is created and closed
- *
- * Can also be used to other information like Socket FD, Connection state, etc.
- *
- * NOTE: This callback will not be able to obtain the client certificate if the
- * following config `Set minimum Certificate Verification mode to Optional` is
- * not enabled (enabled by default in this example).
- *
- * The config option is found here - Component config → ESP-TLS
- *
- */
-static void https_server_user_callback(esp_https_server_user_cb_arg_t *user_cb)
-{
-    ESP_LOGI(TAG, "User callback invoked!");
-#ifdef CONFIG_ESP_TLS_USING_MBEDTLS
-    mbedtls_ssl_context *ssl_ctx = NULL;
-#endif
-    switch(user_cb->user_cb_state) {
-        case HTTPD_SSL_USER_CB_SESS_CREATE:
-            ESP_LOGD(TAG, "At session creation");
-
-            // Logging the socket FD
-            int sockfd = -1;
-            esp_err_t esp_ret;
-            esp_ret = esp_tls_get_conn_sockfd(user_cb->tls, &sockfd);
-            if (esp_ret != ESP_OK) {
-                ESP_LOGE(TAG, "Error in obtaining the sockfd from tls context");
-                break;
-            }
-            ESP_LOGI(TAG, "Socket FD: %d", sockfd);
-#ifdef CONFIG_ESP_TLS_USING_MBEDTLS
-            ssl_ctx = (mbedtls_ssl_context *) esp_tls_get_ssl_context(user_cb->tls);
-            if (ssl_ctx == NULL) {
-                ESP_LOGE(TAG, "Error in obtaining ssl context");
-                break;
-            }
-            // Logging the current ciphersuite
-            ESP_LOGI(TAG, "Current Ciphersuite: %s", mbedtls_ssl_get_ciphersuite(ssl_ctx));
-#endif
-            break;
-
-        case HTTPD_SSL_USER_CB_SESS_CLOSE:
-            ESP_LOGD(TAG, "At session close");
-#ifdef CONFIG_ESP_TLS_USING_MBEDTLS
-            // Logging the peer certificate
-            ssl_ctx = (mbedtls_ssl_context *) esp_tls_get_ssl_context(user_cb->tls);
-            if (ssl_ctx == NULL) {
-                ESP_LOGE(TAG, "Error in obtaining ssl context");
-                break;
-            }
-            print_peer_cert_info(ssl_ctx);
-#endif
-            break;
-        default:
-            ESP_LOGE(TAG, "Illegal state!");
-            return;
-    }
-}
-#endif
-
-static const httpd_uri_t root = {
-    .uri       = "/",
-    .method    = HTTP_GET,
-    .handler   = root_get_handler
-};
-
-static httpd_handle_t start_webserver(void)
-{
-    httpd_handle_t server = NULL;
-
-    // Start the httpd server
-    ESP_LOGI(LOG_TAG, "Starting server");
-
-    httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
-
-    extern const unsigned char servercert_start[] asm("_binary_servercert_pem_start");
-    extern const unsigned char servercert_end[]   asm("_binary_servercert_pem_end");
-    conf.servercert = servercert_start;
-    conf.servercert_len = servercert_end - servercert_start;
-
-    extern const unsigned char prvtkey_pem_start[] asm("_binary_prvtkey_pem_start");
-    extern const unsigned char prvtkey_pem_end[]   asm("_binary_prvtkey_pem_end");
-    conf.prvtkey_pem = prvtkey_pem_start;
-    conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
-
-#if CONFIG_EXAMPLE_ENABLE_HTTPS_USER_CALLBACK
-    conf.user_cb = https_server_user_callback;
-#endif
-    esp_err_t ret = httpd_ssl_start(&server, &conf);
-    if (ESP_OK != ret) {
-        ESP_LOGI(LOG_TAG, "Error starting server!");
-        return NULL;
-    }
-
-    // Set URI handlers
-    ESP_LOGI(LOG_TAG, "Registering URI handlers");
-    httpd_register_uri_handler(server, &root);
-    return server;
-}
-
-static esp_err_t stop_webserver(httpd_handle_t server)
-{
-    // Stop the httpd server
-    return httpd_ssl_stop(server);
-}
-
-static void disconnect_handler(void* arg, esp_event_base_t event_base,
-                               int32_t event_id, void* event_data)
-{
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server) {
-        if (stop_webserver(*server) == ESP_OK) {
-            *server = NULL;
-        } else {
-            ESP_LOGE(LOG_TAG, "Failed to stop https server");
-        }
-    }
-}
-
-static void connect_handler(void* arg, esp_event_base_t event_base,
-                            int32_t event_id, void* event_data)
-{
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server == NULL) {
-        *server = start_webserver();
-    }
-}
+static const char *TAG = "main";
 
 void app_main(void)
 {
-    static httpd_handle_t server = NULL;
+    uint8_t data[2];
+    // ESP_ERROR_CHECK(i2c_master_init());
+    ESP_LOGI(TAG, "I2C initialized successfully");
 
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_LOGI(TAG, "helloo!");
+    /* Read the MPU9250 WHO_AM_I register, on power up the register should have the value 0x71 */
+    // ESP_ERROR_CHECK(mpu9250_register_read(MPU9250_WHO_AM_I_REG_ADDR, data, 1));
+    // ESP_LOGI(TAG, "WHO_AM_I = %X", data[0]);
 
-    /* Register event handlers to start server when Wi-Fi or Ethernet is connected,
-     * and stop server when disconnection happens.
-     */
+    // /* Demonstrate writing by reseting the MPU9250 */
+    // ESP_ERROR_CHECK(mpu9250_register_write_byte(MPU9250_PWR_MGMT_1_REG_ADDR, 1 << MPU9250_RESET_BIT));
 
-#ifdef CONFIG_EXAMPLE_CONNECT_WIFI
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &connect_handler, &server));
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &disconnect_handler, &server));
-#endif // CONFIG_EXAMPLE_CONNECT_WIFI
-#ifdef CONFIG_EXAMPLE_CONNECT_ETHERNET
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &connect_handler, &server));
-    ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, &disconnect_handler, &server));
-#endif // CONFIG_EXAMPLE_CONNECT_ETHERNET
-
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
+    // ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
+    ESP_LOGI(TAG, "I2C de-initialized successfully");
 }
