@@ -99,4 +99,4 @@ const char g_login_form_end[] = "<div class=\"row\"><input type=\"submit\" value
 const char g_container_end[] = "</div>";
 
 const char g_footer[] =
-"<footer class=\"footer\">&#169 2024 Real Time Solutions Pvt. Ltd.</footer></body></html>";
+"<footer class=\"footer\">&#169 2025 Devraj, Bhupendra, Prayag, Sandesh, Sanim</footer></body></html>";
