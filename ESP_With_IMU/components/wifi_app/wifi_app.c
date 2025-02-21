@@ -38,6 +38,8 @@
 /* Private variables */
 static EventGroupHandle_t g_s_wifi_grp_event;
 static char g_ip_string[16];
+static char g_hotspot_ssid[12] = "fall_detect\0";
+static char g_hotspot_pw[10] = "12345678\0";
 
 /* Private function declarations */
 static void _wifi_task (void * pv);
@@ -56,6 +58,8 @@ static esp_ping_handle_t ping_handle;
 void wifi_app_init (void)
 {
 	g_s_wifi_grp_event = xEventGroupCreate();
+	esp_netif_init();
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
 	ESP_LOGI("<wifi bro>", "Hello World");
     xTaskCreatePinnedToCore(_wifi_task, "sTask", 3 * 1024, NULL, 5, NULL, 1);
 }
@@ -238,10 +242,10 @@ static void _start_ap_mode()
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
     wifi_config_t wifi_config = {0};
-	strncpy((char * )wifi_config.ap.ssid, settings_get_hotspot_info()->ssid, sizeof(wifi_config.ap.ssid));
-	strncpy((char * )wifi_config.ap.password, settings_get_hotspot_info()->password, sizeof(wifi_config.ap.password));
+	strncpy((char * )wifi_config.ap.ssid, g_hotspot_ssid, sizeof(wifi_config.ap.ssid));
+	strncpy((char * )wifi_config.ap.password, g_hotspot_pw, sizeof(wifi_config.ap.password));
 
-	wifi_config.ap.ssid_len =  strlen(settings_get_hotspot_info()->ssid);
+	wifi_config.ap.ssid_len =  strlen(g_hotspot_ssid);
 	wifi_config.ap.max_connection = 2;
 	wifi_config.ap.authmode = WIFI_AUTH_WPA_WPA2_PSK;
 
@@ -325,19 +329,15 @@ static void _wifi_event_handler (void * p_ctx, esp_event_base_t e_evt_base, int3
 
 static void _wifi_task (void * pv)
 {
-	// ge_connection_status = settings_get_connection_status();
-
-	esp_netif_init();
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
 	gp_s_sta_netif = esp_netif_create_default_wifi_sta();
 	gp_s_ap_netif = esp_netif_create_default_wifi_ap();
    	esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, _wifi_event_handler, NULL);
     esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, _wifi_event_handler, NULL);	
 
-	// ESP_LOGI(LOG_TAG, "Hotspot");
-	// _start_ap_mode();
-	wifi_connect_to_saved_ssid();
-	// vTaskDelay(000);
+	ESP_LOGI(LOG_TAG, "Hotspot");
+	_start_ap_mode();
+	settings_init_inactivity_timer();
+
+	vTaskDelay(1000);
 	vTaskDelete(NULL);
 }

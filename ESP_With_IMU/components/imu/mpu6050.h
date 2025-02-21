@@ -10,7 +10,7 @@
 #define I2C_MASTER_TIMEOUT_MS       1000
 
 /* MPU6050 ADDRESS*/
-#define MPU6050_SENSOR_ADDRESS              0x69    /* AD0 = 0 --> address = 0b01101000*/
+#define MPU6050_SENSOR_ADDRESS              0x68    /* AD0 = 0 --> address = 0b01101000*/
                                                     /* AD0 = 1 --> address = 0b01101001*/
 
 #define MPU6050_DEFAULT_ADDRESS             0x68

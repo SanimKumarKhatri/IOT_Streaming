@@ -71,6 +71,12 @@ esp_err_t settings_reset(bool restart_flag);
 esp_err_t settings_save (bool restart_flag);
 settings_t * settings_get_info (void);
 
+/* inactivity timer */
+void settings_on_inactivity_timeout (void);
+void settings_init_inactivity_timer (void);
+void settings_reset_inactivity_timer (void);
+void settings_stop_inactivity_timer (void);
+
 /* Wifi */
 wifi_info_t * settings_get_wifi_info (void);
 const credential_t * settings_get_wifi_credential (void);

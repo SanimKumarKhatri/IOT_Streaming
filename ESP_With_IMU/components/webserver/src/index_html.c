@@ -11,8 +11,8 @@ const char g_doc[] =
 
 const char g_header[] =
 "<body><header><div id=\"header-inner\"><h2 class=\"name\">%s</h2><nav><a href=\"#\" id=\"menu-icon\">&#9776</a>"
-"<ul><li><a href=\"/\" class=\"%s\">WiFi Settings</a></li><li><a href=\"hotspot\" class=\"%s\">Hotspot Settings</a></li>"
-"<li><a href=\"firmware\" class=\"%s\">Firmware Update</a></li><li><a href=\"server_config\" class=\"%s\">Server Settings</a></li><li><a href=\"about\" class=\"%s\">About</a></li></ul></nav></div></header>";
+"<ul><li><a href=\"/\" class=\"%s\">WiFi Settings</a></li><li><a href=\"mqtt_config\" class=\"%s\">MQTT Settings</a></li>"
+"<li><a href=\"about\" class=\"%s\">About</a></li></ul></nav></div></header>";
 
 const char g_container[] =
 "<div class=\"container\">";
@@ -99,4 +99,4 @@ const char g_login_form_end[] = "<div class=\"row\"><input type=\"submit\" value
 const char g_container_end[] = "</div>";
 
 const char g_footer[] =
-"<footer class=\"footer\">&#169 2024 Real Time Solutions Pvt. Ltd.</footer></body></html>";
+"<footer class=\"footer\">&#169 2025 Devraj, Bhupendra, Prayag, Sandesh, Sanim</footer></body></html>";
