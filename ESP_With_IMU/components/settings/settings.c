@@ -14,6 +14,7 @@
 #include "esp_log.h"
 #include "settings.h"
 
+#define INACTIVITY_TIMEOUT_MS 30000
 
 /*extern public functions*/
 extern void wifi_connect_to_saved_ssid (void);
@@ -25,6 +26,8 @@ static const char * g_p_settings  = "settings";
 static const char * g_p_nvs_label = "nvs";
 static bool restart_flag=false;
 static inline void _initialize_nvs_flash (void);
+
+static TimerHandle_t g_inactivity_timer;
 /*************************************** Public function definitions *******************************************/
 esp_err_t settings_init (void)
 {
@@ -232,3 +235,32 @@ bool get_restart_flag (void)
 	return restart_flag;
 }
 
+void settings_on_inactivity_timeout (void)
+{
+	ESP_LOGI("TIMER", "Inactivity detected: Connecting to saved SSID.");
+	wifi_connect_to_saved_ssid();
+}
+
+void settings_init_inactivity_timer (void)
+{
+	g_inactivity_timer = xTimerCreate("InactivityTimer", pdMS_TO_TICKS(INACTIVITY_TIMEOUT_MS), pdFALSE, NULL, settings_on_inactivity_timeout);
+	if (g_inactivity_timer == NULL) 
+	{
+        ESP_LOGE("TIMER", "Failed to create inactivity timer");
+    } 
+	else 
+	{
+        xTimerStart(g_inactivity_timer, 0); 
+    }
+}
+
+void settings_reset_inactivity_timer (void)
+{
+	 if (xTimerIsTimerActive(g_inactivity_timer))
+	{
+		if (xTimerReset(g_inactivity_timer, 0) != pdPASS) 
+		{
+			ESP_LOGE("TIMER", "Failed to reset inactivity timer");
+		}
+	}
+}	
