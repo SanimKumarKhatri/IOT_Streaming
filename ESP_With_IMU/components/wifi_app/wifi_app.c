@@ -25,8 +25,7 @@
 #include "settings.h"
 #include "wifi_app.h"
 #include "esp_netif.h"
-// #include "mqtt_app.h"
-// #include "rts_ims.h"
+#include "mqtt.h"
 
 /* extern Public functions */
 
@@ -322,7 +321,7 @@ static void _wifi_event_handler (void * p_ctx, esp_event_base_t e_evt_base, int3
         ESP_LOGI(LOG_TAG, "Got IP:" IPSTR, IP2STR(&ps_ip_event->ip_info.ip));
 		esp_ip4addr_ntoa(&ps_ip_event->ip_info.ip, g_ip_string, sizeof(g_ip_string));
 		xEventGroupSetBits(g_s_wifi_grp_event, WIFI_GOT_IP_BIT);
-		// mqtt_app_init();
+		mqtt_app_init();
 	}
 }
 
