@@ -291,7 +291,7 @@ esp_err_t mpu6050_set_gyro_range (uint8_t gyro_range)
 float mpu6050_get_temperature (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_TEMP_OUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[6]) << 8) | buffer[7];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return (result / 340.0) + 36.53;
 }
 
@@ -306,35 +306,35 @@ float mpu6050_get_accel_x (void)
 float mpu6050_get_accel_y (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_ACCEL_YOUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[2]) << 8) | buffer[3];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return result / accel_sensitivity;
 }
 
 float mpu6050_get_accel_z (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_ACCEL_ZOUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[4]) << 8) | buffer[5];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return result / accel_sensitivity;
 }
 
 float mpu6050_get_gyro_x (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_GYRO_XOUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[8]) << 8) | buffer[9];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return result / gyro_sensitivity;
 }
 
 float mpu6050_get_gyro_y (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_GYRO_YOUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[10]) << 8) | buffer[11];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return result / gyro_sensitivity;
 }
 
 float mpu6050_get_gyro_z (void)
 {
     _i2c_read_bytes(I2C_MASTER_NUM, MPU6050_SENSOR_ADDRESS, MPU6050_GYRO_ZOUT_H, &buffer, 2);
-    int16_t result = (((int16_t)buffer[12]) << 8) | buffer[13];
+    int16_t result = (((int16_t)buffer[0]) << 8) | buffer[1];
     return result / gyro_sensitivity;
 }
 
