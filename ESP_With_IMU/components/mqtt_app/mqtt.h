@@ -23,6 +23,8 @@
  
 void mqtt_app_init(void);
 
-int mqtt_publish_data (float a_x, float a_y, float a_z);
+int mqtt_publish_accel_data (float a_x, float a_y, float a_z);
+int mqtt_publish_gyro_data (float g_x, float g_y, float g_z);
+int mqtt_publish_temp_data (float temp);
 
 #endif /* __MQTT_H__ */

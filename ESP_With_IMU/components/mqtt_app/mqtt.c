@@ -21,12 +21,30 @@ void mqtt_app_init (void)
     esp_mqtt_client_start(gs_client);
 }
 
-int mqtt_publish_data (float a_x, float a_y, float a_z)
+int mqtt_publish_accel_data (float a_x, float a_y, float a_z)
 {
     int err;
     char msg[20];
     snprintf(msg, sizeof(msg), "%0.2f,%0.2f,%0.2f", a_x, a_y, a_z);
-    err = esp_mqtt_client_publish(gs_client, MQTT_TOPIC, msg, 0, 1, 0);
+    err = esp_mqtt_client_publish(gs_client, "mpu6050_test/accel_data", msg, 0, 1, 0);
+    return err;
+}
+
+int mqtt_publish_gyro_data (float g_x, float g_y, float g_z)
+{
+    int err;
+    char msg[20];
+    snprintf(msg, sizeof(msg), "%0.2f,%0.2f,%0.2f", g_x, g_y, g_z);
+    err = esp_mqtt_client_publish(gs_client, "mpu6050_test/gyro_data", msg, 0, 1, 0);
+    return err;
+}
+
+int mqtt_publish_temp_data (float temp)
+{
+    int err;
+    char msg[10];
+    snprintf(msg, sizeof(msg), "%0.2f", temp);
+    err = esp_mqtt_client_publish(gs_client, "mpu6050_test/temp_data", msg, 0, 1, 0);
     return err;
 }
 
