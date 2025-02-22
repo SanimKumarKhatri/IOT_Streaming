@@ -19,6 +19,10 @@
 
 #include "mqtt_client.h"
 
+#define MQTT_TOPIC "mpu6050_test/data"
+ 
 void mqtt_app_init(void);
+
+int mqtt_publish_data (float a_x, float a_y, float a_z);
 
 #endif /* __MQTT_H__ */

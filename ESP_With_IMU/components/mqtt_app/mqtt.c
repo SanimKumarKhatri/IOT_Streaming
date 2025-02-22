@@ -4,6 +4,8 @@
 /******* Private Global Variables *******/
 #define LOG_TAG "<mqtt_app>"
 
+static esp_mqtt_client_handle_t gs_client;
+
 /*********************Private Function Declaration ******************************/
 static esp_err_t mqtt_event_handler_cb (esp_mqtt_event_handle_t s_event);
 static void mqtt_event_handler (void *p_handler_args, esp_event_base_t base, int32_t event_id, void *p_event_data);
@@ -14,21 +16,30 @@ void mqtt_app_init (void)
     esp_mqtt_client_config_t s_mqtt_cfg = {
         .broker.address.uri = "mqtt://mqtt.eclipseprojects.io",
     };
-    esp_mqtt_client_handle_t s_client = esp_mqtt_client_init(&s_mqtt_cfg);
-    esp_mqtt_client_register_event(s_client, ESP_EVENT_ANY_ID, mqtt_event_handler, s_client);
-    esp_mqtt_client_start(s_client);
+    gs_client = esp_mqtt_client_init(&s_mqtt_cfg);
+    esp_mqtt_client_register_event(gs_client, ESP_EVENT_ANY_ID, mqtt_event_handler, gs_client);
+    esp_mqtt_client_start(gs_client);
+}
+
+int mqtt_publish_data (float a_x, float a_y, float a_z)
+{
+    int err;
+    char msg[20];
+    snprintf(msg, sizeof(msg), "%0.2f,%0.2f,%0.2f", a_x, a_y, a_z);
+    err = esp_mqtt_client_publish(gs_client, MQTT_TOPIC, msg, 0, 1, 0);
+    return err;
 }
 
 /*********************Private Function Definition ******************************/
 static esp_err_t mqtt_event_handler_cb (esp_mqtt_event_handle_t s_event)
 {
-    esp_mqtt_client_handle_t client = s_event->client;
+    gs_client = s_event->client;
     switch (s_event->event_id)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(LOG_TAG, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_subscribe(client, "my_topic", 0);
-        esp_mqtt_client_publish(client, "my_topic", "Hi to all from ESP32 .........", 0, 1, 0);
+        // esp_mqtt_client_subscribe(client, "my_tops
+        esp_mqtt_client_publish(gs_client, "my_topic", "Hi to all from ESP32 .........", 0, 1, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(LOG_TAG, "MQTT_EVENT_DISCONNECTED");
