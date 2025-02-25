@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <h2>Accelerometer Data</h2>
+    <div id="accel_graph"></div>
+
+    <h2>Gyroscope Data</h2>
+    <div id="gyro_graph"></div>
+
+    <h2>Temperature Data</h2>
+    <div id="temp_graph"></div>
+
+    <script>
+        var socket = io();
+        var timeAccel = [];
+        var timeGyro = [];
+        var timeTemp = [];
+        var accelXData = [];
+        var accelYData = [];
+        var accelZData = [];
+        var gyroXData = [];
+        var gyroYData = [];
+        var gyroZData = [];
+        var tempData = [];
+        
+        var maxDataPoints = 50; 
+
+        function createGraph(divId, title, yTitle) {
+            var layout = { title: title, xaxis: { title: 'Time' }, yaxis: { title: yTitle } };
+            Plotly.newPlot(divId, [], layout);
+        }
+
+        createGraph('accel_graph', 'Accelerometer Data', 'm/s2');
+        createGraph('gyro_graph', 'Gyroscope Data', 'deg/s');
+        createGraph('temp_graph', 'Temperature', '°C');
+
+        socket.on('update_accel', function(msg) {
+            if (timeAccel.length > maxDataPoints) {  
+                timeAccel.shift();
+                accelXData.shift();
+                accelYData.shift();
+                accelZData.shift();
+            }
+    
+            timeAccel.push(msg.time);
+            accelXData.push(msg.accel_x);
+            accelYData.push(msg.accel_y);
+            accelZData.push(msg.accel_z);
+
+            Plotly.update('accel_graph', {
+                x: [timeAccel, timeAccel, timeAccel],
+                y: [accelXData, accelYData, accelZData]
+            }, [0,1,2]);
+        });
+
+        socket.on('update_gyro', function(msg) {
+            if (timeGyro.length > maxDataPoints) {
+                timeGyro.shift();
+                gyroXData.shift(); gyroYData.shift(); gyroZData.shift();
+            }
+
+            timeGyro.push(msg.time);
+            gyroXData.push(msg.gyro_x);
+            gyroYData.push(msg.gyro_y);
+            gyroZData.push(msg.gyro_z);
+
+            Plotly.update('gyro_graph', {
+                x: [timeGyro, timeGyro, timeGyro],
+                y: [gyroXData, gyroYData, gyroZData]
+            }, [0, 1, 2]);
+        });
+
+
+        socket.on('update_temp', function(msg) {
+            if (timeTemp.length > maxDataPoints) {
+                timeTemp.shift();
+                tempData.shift();
+            }
+
+            timeTemp.push(msg.time);
+            tempData.push(msg.temperature);
+            console.log("hi")
+            Plotly.update('temp_graph', {
+                x: [timeTemp],
+                y: [tempData]
+            }, [0]);
+        });
+    </script>
+</body>
+</html>
