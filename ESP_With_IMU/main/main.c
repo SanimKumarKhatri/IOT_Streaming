@@ -35,6 +35,6 @@ static void _mqtt_sensor_task (void * p_arg)
         mqtt_publish_gyro_data(mpu6050_get_gyro_x(), mpu6050_get_gyro_y(), mpu6050_get_gyro_z());
         mqtt_publish_temp_data(mpu6050_get_temperature());
 
-        vTaskDelay(10000);
+        vTaskDelay(3000);
     }
 }
