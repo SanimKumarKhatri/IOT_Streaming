@@ -21,6 +21,15 @@ void mqtt_app_init (void)
     esp_mqtt_client_start(gs_client);
 }
 
+int mqtt_publish_data (float ax, float ay, float az, float gx, float gy, float gz, float temp)
+{
+    int err;
+    char msg[45];
+    snprintf(msg, sizeof(msg), "%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f,%0.2f", ax, ay, az, gx, gy, gz, temp);
+    err = esp_mqtt_client_publish(gs_client, "mpu6050_iot/all_data", msg, 0, 1, 0);
+    return err;
+}
+
 int mqtt_publish_accel_data (float a_x, float a_y, float a_z)
 {
     int err;

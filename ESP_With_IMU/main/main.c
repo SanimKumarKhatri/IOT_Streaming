@@ -31,10 +31,8 @@ static void _mqtt_sensor_task (void * p_arg)
     {
         ESP_LOGI(TAG, "ACCEL_X= %0.2f", mpu6050_get_accel_x());
         ESP_LOGI(TAG, "ACCEL_Y= %0.2f", mpu6050_get_accel_y());
-        mqtt_publish_accel_data(mpu6050_get_accel_x(), mpu6050_get_accel_y(), mpu6050_get_accel_z());
-        mqtt_publish_gyro_data(mpu6050_get_gyro_x(), mpu6050_get_gyro_y(), mpu6050_get_gyro_z());
-        mqtt_publish_temp_data(mpu6050_get_temperature());
-
+        mqtt_publish_data (mpu6050_get_accel_x(), mpu6050_get_accel_y(), mpu6050_get_accel_z(),
+        mpu6050_get_gyro_x(), mpu6050_get_gyro_y(), mpu6050_get_gyro_z(), mpu6050_get_temperature());
         vTaskDelay(3000);
     }
 }
