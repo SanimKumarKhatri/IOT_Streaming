@@ -5,7 +5,7 @@ import logging
 # Configuration
 MOSQUITTO_BROKER = "mqtt.eclipseprojects.io"
 MQTT_PORT = 1883
-MQTT_TOPIC = "mpu6050_test/data"
+MQTT_TOPIC = "mpu6050_iot/all_data"
 CLIENT_ID = "PythonSubscriber"
 RECONNECT_DELAY = 5  # in seconds in case of failure
 
