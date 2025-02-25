@@ -19,9 +19,7 @@
 
     <script>
         var socket = io();
-        var timeAccel = [];
-        var timeGyro = [];
-        var timeTemp = [];
+        var timeData = [];
         var accelXData = [];
         var accelYData = [];
         var accelZData = [];
@@ -32,65 +30,60 @@
         
         var maxDataPoints = 50; 
 
-        function createGraph(divId, title, yTitle) {
+        function createGraph(divId, title, yTitle, traces) {
             var layout = { title: title, xaxis: { title: 'Time' }, yaxis: { title: yTitle } };
-            Plotly.newPlot(divId, [], layout);
+            Plotly.newPlot(divId, traces, layout);
         }
 
-        createGraph('accel_graph', 'Accelerometer Data', 'm/s2');
-        createGraph('gyro_graph', 'Gyroscope Data', 'deg/s');
-        createGraph('temp_graph', 'Temperature', '°C');
+        createGraph('accel_graph', 'Accelerometer Data', 'm/s2',
+            { x: [], y: [], mode: "lines", name: "X-axis" },
+            { x: [], y: [], mode: "lines", name: "Y-axis" },
+            { x: [], y: [], mode: "lines", name: "Z-axis" }
+        );
+        createGraph('gyro_graph', 'Gyroscope Data', 'deg/s',
+            { x: [], y: [], mode: "lines", name: "X-axis" },
+            { x: [], y: [], mode: "lines", name: "Y-axis" },
+            { x: [], y: [], mode: "lines", name: "Z-axis" }
+        );
+        createGraph('temp_graph', 'Temperature', '°C',
+            { x: [], y: [], mode: "lines", name: "Temperature"}
+        );
 
-        socket.on('update_accel', function(msg) {
-            if (timeAccel.length > maxDataPoints) {  
-                timeAccel.shift();
+        socket.on('update_data', function(msg) {
+            console.log("Received accel data:", msg);
+            if (timeData.length > maxDataPoints) {  
+                timeData.shift();
                 accelXData.shift();
                 accelYData.shift();
                 accelZData.shift();
+                gyroXData.shift();
+                gyroYData.shift();
+                gyroZData.shift();
+                tempData.shift();
             }
     
-            timeAccel.push(msg.time);
+            timeData.push(msg.time);
             accelXData.push(msg.accel_x);
             accelYData.push(msg.accel_y);
             accelZData.push(msg.accel_z);
-
-            Plotly.update('accel_graph', {
-                x: [timeAccel, timeAccel, timeAccel],
-                y: [accelXData, accelYData, accelZData]
-            }, [0,1,2]);
-        });
-
-        socket.on('update_gyro', function(msg) {
-            if (timeGyro.length > maxDataPoints) {
-                timeGyro.shift();
-                gyroXData.shift(); gyroYData.shift(); gyroZData.shift();
-            }
-
-            timeGyro.push(msg.time);
             gyroXData.push(msg.gyro_x);
             gyroYData.push(msg.gyro_y);
             gyroZData.push(msg.gyro_z);
-
-            Plotly.update('gyro_graph', {
-                x: [timeGyro, timeGyro, timeGyro],
-                y: [gyroXData, gyroYData, gyroZData]
-            }, [0, 1, 2]);
-        });
-
-
-        socket.on('update_temp', function(msg) {
-            if (timeTemp.length > maxDataPoints) {
-                timeTemp.shift();
-                tempData.shift();
-            }
-
-            timeTemp.push(msg.time);
             tempData.push(msg.temperature);
-            console.log("hi")
-            Plotly.update('temp_graph', {
-                x: [timeTemp],
-                y: [tempData]
-            }, [0]);
+
+            Plotly.react('accel_graph', [
+                { x: [...timeData], y: [...accelXData], mode: "lines", name: "X-axis" },
+                { x: [...timeData], y: [...accelYData], mode: "lines", name: "Y-axis" },
+                { x: [...timeData], y: [...accelZData], mode: "lines", name: "Z-axis" }
+            ]);
+            Plotly.react('gyro_graph',  [
+                { x: [...timeData], y: [...gyroXData], mode: "lines", name: "X-axis" },
+                { x: [...timeData], y: [...gyroYData], mode: "lines", name: "Y-axis" },
+                { x: [...timeData], y: [...gyroZData], mode: "lines", name: "Z-axis" }
+            ]);
+            Plotly.react('temp_graph',  [
+                { x: [...timeData], y: [...tempData], mode: "lines", name: "Temperature" },
+            ]);
         });
     </script>
 </body>
