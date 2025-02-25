@@ -1,4 +1,5 @@
-Flask
-Flask-SocketIO
+flask
+flask-socketio
+plotly
 eventlet
 paho-mqtt
