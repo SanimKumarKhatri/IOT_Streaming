@@ -1,20 +1,19 @@
 import paho.mqtt.client as mqtt
 import time
 import logging
-
+from CloudMongoDBWriter import CloudMongoDB
 # Configuration
 MOSQUITTO_BROKER = "mqtt.eclipseprojects.io"
 MQTT_PORT = 1883
 MQTT_TOPIC = "mpu6050_iot/all_data"
 CLIENT_ID = "PythonSubscriber"
 RECONNECT_DELAY = 5  # in seconds in case of failure
-
+#.............................
 # Configure logging
 logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s',
     level=logging.INFO
 )
-
 class MQTTSubscriber:
     def __init__(self):
         self.connected = False
@@ -23,6 +22,8 @@ class MQTTSubscriber:
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2
         )
         self._setup_callbacks()
+        #.....mongoDB setup................
+        self.mongoDBInstance=CloudMongoDB()
         
     def _setup_callbacks(self):
         """Configure MQTT client callbacks"""
@@ -51,7 +52,21 @@ class MQTTSubscriber:
         """Callback for when a message is received"""
         try:
             payload = message.payload.decode()
-            logging.info(f"Received [{message.topic}]: {payload}")
+            ax, ay, az, gx, gy, gz, temp = map(float, payload.split(",")) 
+            sensor_document = {
+                    "time": time.strftime("%H:%M:%S"),
+                    "ax": ax,
+                    "ay": ay,
+                    "az": az,
+                    "gx": gx,
+                    "gy": gy,
+                    "gz": gz,
+                    "temperature": temp
+                }
+            if not self.mongoDBInstance.isMongoDbConnected():
+                self.mongoDBInstance.mongoConnect()
+            self.mongoDBInstance.insertDocument(sensor_document)
+            logging.info(f"Received: Logged to mongoDB successfully.")
         except UnicodeDecodeError:
             logging.error("Received malformed message payload")
 
