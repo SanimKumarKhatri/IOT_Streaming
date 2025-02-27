@@ -17,14 +17,16 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     global data_received,accel_received, gyro_received, temp_received
-    payload = msg.payload.decode()
+    payload = msg.payload.decode("utf-8")
     print(f"Received: {msg.topic} -> {payload}")
     try:
         if msg.topic == "mpu6050_iot/all_data":
-            ax, ay, az, gx, gy, gz, temp = map(float, payload.split(","))
+            parts = payload.split(',')
+            datetime = parts[0]
+            ax, ay, az, gx, gy, gz, temp = map(float, parts[1:])
             global latest_data 
             latest_data = {
-                    "time": time.strftime("%H:%M:%S"),
+                    "time": datetime,
                     "ax": ax,
                     "ay": ay,
                     "az": az,
