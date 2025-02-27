@@ -8,6 +8,8 @@
  #ifndef __WIFI_APP_H__
  #define __WIFI_APP_H__
  
+ #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+ 
  void wifi_app_init (void);
  
  uint32_t wifi_app_wait_for_station_connection (uint32_t wait_ms);
