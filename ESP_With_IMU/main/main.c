@@ -12,7 +12,7 @@ static const char *TAG = "main";
 static char datetime[64];
 static void _mqtt_sensor_task(void *p_arg);
 
-void app_main(void)
+void app_main (void)
 {
     settings_init();
     wifi_app_init();
@@ -39,6 +39,6 @@ static void _mqtt_sensor_task (void * p_arg)
         ESP_LOGI(TAG, "ACCEL_X= %0.2f", mpu6050_get_accel_x());
         ESP_LOGI(TAG, "ACCEL_Y= %0.2f", mpu6050_get_accel_y());
         
-        vTaskDelay(3000);
+        vTaskDelay(1000);
     }
 }
