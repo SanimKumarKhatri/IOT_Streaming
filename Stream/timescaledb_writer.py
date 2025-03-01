@@ -32,7 +32,8 @@ class TimescaleSubscriber(MQTTSubscriber):
                 host='localhost',
                 port='5432',
                 user='postgres',
-                password='password'
+                database='sensor',
+                password='1234'
             )  
             self.cursor = self.conn.cursor()
                           
@@ -57,7 +58,7 @@ class TimescaleSubscriber(MQTTSubscriber):
                     temp NUMERIC(5,2) NOT NULL
                 );''')
             self.cursor.execute('''
-                SELECT create_hypertable('sensor_data', by_range('time'), 
+                SELECT create_hypertable('sensor_data',by_range('time'), 
                        if_not_exists => TRUE);''')
             self.conn.commit()
             logging.info("Database setup completed")
@@ -76,17 +77,17 @@ class TimescaleSubscriber(MQTTSubscriber):
 
             with self.conn:
                 with self.conn.cursor() as cursor:
-                    value = str(message.payload.decode())
-                    values = value.split(',')
-                    ax, ay, az, gx, gy, gz, temp = [float(x) for x in values]
+                    payload = message.payload.decode()
+                    parts = payload.split(',')
+                    timestamp = parts[0]
+                    ax, ay, az, gx, gy, gz, temp = map(float, parts[1:])
                     cursor.execute('''
                         INSERT INTO sensor_data (time, topic, ax, ay, az, gx, gy, gz, temp)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ''', (datetime.utcnow(), message.topic, ax, ay, az, gx, gy, gz, temp))
+                    ''', (timestamp, message.topic, ax, ay, az, gx, gy, gz, temp))
 
                 self.conn.commit()
-
-
+                print("Message Written into the DB")
         except Exception as e:
             logging.error(f"Database error: {e}")
             self.conn.rollback()
