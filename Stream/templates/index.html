@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <h2>Accelerometer Data</h2>
+    <div id="accel_graph"></div>
+
+    <h2>Gyroscope Data</h2>
+    <div id="gyro_graph"></div>
+
+    <h2>Temperature Data</h2>
+    <div id="temp_graph"></div>
+    <script>
+        var socket = io();
+        var timeData = new Array([]);
+        var accelXData = new Array();
+        var accelYData = new Array();
+        var accelZData = new Array();
+        var gyroXData = new Array();
+        var gyroYData = new Array();
+        var gyroZData = new Array();
+        var tempData = new Array();
+        var maxDataPoints = 100;
+        function createGraph(divId, title, yTitle, traces) {
+                var layout = { title: title, xaxis: { title: 'Time' }, yaxis: { title: yTitle } };
+                Plotly.newPlot(divId, traces, layout);
+            }
+            createGraph('accel_graph', 'Accelerometer Data', 'm/s2',
+                { x: [], y: [], mode: "lines", name: "X-axis" },
+                { x: [], y: [], mode: "lines", name: "Y-axis" },
+                { x: [], y: [], mode: "lines", name: "Z-axis" }
+            );
+            createGraph('gyro_graph', 'Gyroscope Data', 'deg/s',
+                { x: [], y: [], mode: "lines", name: "X-axis" },
+                { x: [], y: [], mode: "lines", name: "Y-axis" },
+                { x: [], y: [], mode: "lines", name: "Z-axis" }
+            );
+            createGraph('temp_graph', 'Temperature', '°C',
+                { x: [], y: [], mode: "lines", name: "Temperature"}
+            );
+        function plot(){
+            Plotly.react('accel_graph', [
+                        { x: [...timeData], y: [...accelXData], mode: "lines", name: "X-axis" },
+                        { x: [...timeData], y: [...accelYData], mode: "lines", name: "Y-axis" },
+                        { x: [...timeData], y: [...accelZData], mode: "lines", name: "Z-axis" }
+                    ]);
+                    Plotly.react('gyro_graph',  [
+                        { x: [...timeData], y: [...gyroXData], mode: "lines", name: "X-axis" },
+                        { x: [...timeData], y: [...gyroYData], mode: "lines", name: "Y-axis" },
+                        { x: [...timeData], y: [...gyroZData], mode: "lines", name: "Z-axis" }
+                    ]);
+                    Plotly.react('temp_graph',  [
+                        { x: [...timeData], y: [...tempData], mode: "lines", name: "Temperature" },
+                    ]);
+        }
+        socket.on('new_sensor_data', function(msg) {
+            console.log("Received data:", msg);
+            msg.sensor_data.forEach(data => {
+                if (timeData.length > maxDataPoints) {  
+                    timeData.shift();
+                    accelXData.shift();
+                    accelYData.shift();
+                    accelZData.shift();
+                    gyroXData.shift();
+                    gyroYData.shift();
+                    gyroZData.shift();
+                    tempData.shift();
+                }
+                let last_time_sensor_data=JSON.parse(localStorage.getItem('sensorData')).time.at(-1);
+                if(last_time_sensor_data!=data.time){
+                    timeData.push(data.time);
+                    accelXData.push(data.ax);
+                    accelYData.push(data.ay);
+                    accelZData.push(data.az);
+                    gyroXData.push(data.gx);
+                    gyroYData.push(data.gy);
+                    gyroZData.push(data.gz);
+                    tempData.push(data.temp);
+                    localStorage.setItem('sensorData',JSON.stringify({// Store in Local Storage storage
+                        "time":timeData,
+                        "ax":accelXData,
+                        "ay":accelYData,
+                        "az":accelZData,
+                        "gx":gyroXData,
+                        "gy":gyroYData,
+                        "gz":gyroZData,
+                        "temp":tempData
+                    }));
+                }
+                else{
+                    console.log("Data not logged")
+                }
+            plot()
+        });
+    }); 
+        // Fetch data every 5 seconds
+        function fetOnPageLoad(){
+            //load data from localStorage
+            let sensor_data=JSON.parse(localStorage.getItem('sensorData'));
+            timeData=sensor_data.time
+            accelXData =sensor_data.ax;
+            accelYData = sensor_data.ay;
+            accelZData =sensor_data.az;
+            gyroXData = sensor_data.gx;
+            gyroYData = sensor_data.gy;
+            gyroZData = sensor_data.gz;
+            tempData = sensor_data.temp;
+            plot()
+        }
+        // Initial Fetch on Page Load
+        window.onload = fetOnPageLoad;
+    </script>
+</body>
+</html>

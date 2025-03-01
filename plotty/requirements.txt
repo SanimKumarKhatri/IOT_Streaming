@@ -1,5 +1,0 @@
-flask
-flask-socketio
-plotly
-eventlet
-paho-mqtt
