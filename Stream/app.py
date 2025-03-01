@@ -6,6 +6,9 @@ import logging
 from timescaledb_writer import TimescaleSubscriber
 import threading
 from flask_socketio import SocketIO
+from dotenv import load_dotenv
+import os
+load_dotenv()
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 # Database Connection
@@ -13,10 +16,10 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(
             host='localhost',
-            port='5432',
-            user='postgres',
-            database='sensor',
-            password='1234'
+            port=os.getenv('MONGODB_PORT'),
+            user=os.getenv('MONGO_USERNAME'),
+            database=os.getenv('MONGODB'),
+            password=os.getenv('MONGO_PASSWORD')
         )
         return conn
     except Exception as e:

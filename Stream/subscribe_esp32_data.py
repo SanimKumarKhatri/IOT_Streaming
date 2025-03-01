@@ -1,11 +1,14 @@
 import paho.mqtt.client as mqtt
 import time
 import logging
+import os
+from dotenv import load_dotenv
+load_dotenv()
 # Configuration
-MOSQUITTO_BROKER = "mqtt.eclipseprojects.io"
-MQTT_PORT = 1883
-MQTT_TOPIC = "mpu6050_iot/all_data"
-CLIENT_ID = "PythonSubscriber"
+MOSQUITTO_BROKER =os.getenv('MOSQUITTO_BROKER')
+MQTT_PORT =int(os.getenv('MQTT_PORT'))
+MQTT_TOPIC = os.getenv('MQTT_TOPIC')
+CLIENT_ID = os.getenv('CLIENT_ID')
 RECONNECT_DELAY = 5  # in seconds in case of failure
 #.............................
 # Configure logging

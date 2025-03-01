@@ -1,12 +1,13 @@
 import psycopg2
 from datetime import datetime
 import re
+import os
+import dotenv
 import logging
 from urllib.parse import urlparse
 from subscribe_esp32_data import MQTTSubscriber
 import time
-
-
+dotenv.load_dotenv()
 class TimescaleSubscriber(MQTTSubscriber):
     def __init__(self):
         # Initialize parent MQTTSubscriber
@@ -30,10 +31,10 @@ class TimescaleSubscriber(MQTTSubscriber):
        
             self.conn = psycopg2.connect(
                 host='localhost',
-                port='5432',
-                user='postgres',
-                database='sensor',
-                password='1234'
+                port=os.getenv('MONGODB_PORT'),
+                user=os.getenv('MONGO_USERNAME'),
+                database=os.getenv('MONGODB'),
+                password=os.getenv('MONGO_PASSWORD')
             )  
             self.cursor = self.conn.cursor()
                           
