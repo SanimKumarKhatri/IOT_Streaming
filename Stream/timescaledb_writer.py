@@ -1,4 +1,5 @@
 import psycopg2
+import math
 from datetime import datetime
 import re
 import os
@@ -75,20 +76,22 @@ class TimescaleSubscriber(MQTTSubscriber):
 
         # Then handling database insertion
         try:
-
             with self.conn:
                 with self.conn.cursor() as cursor:
                     payload = message.payload.decode()
                     parts = payload.split(',')
                     timestamp = parts[0]
-                    ax, ay, az, gx, gy, gz, temp = map(float, parts[1:])
-                    cursor.execute('''
-                        INSERT INTO sensor_data (time, topic, ax, ay, az, gx, gy, gz, temp)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ''', (timestamp, message.topic, ax, ay, az, gx, gy, gz, temp))
-
-                self.conn.commit()
-                print("Message Written into the DB")
+                    #ax, ay, az, gx, gy, gz, temp = map(float, parts[1:])
+                    values = list(map(float, parts[1:]))
+                    if any(math.isnan(v) for v in values):
+                        print("NaN detected, skipping database write.")
+                    else:
+                        cursor.execute('''
+                            INSERT INTO sensor_data (time, topic, ax, ay, az, gx, gy, gz, temp)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ''', (timestamp, message.topic, *values))
+                        self.conn.commit()
+                        print("Message Written into the DB")
         except Exception as e:
             logging.error(f"Database error: {e}")
             self.conn.rollback()

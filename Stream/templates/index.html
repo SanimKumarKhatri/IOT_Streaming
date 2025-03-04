@@ -26,7 +26,7 @@
         var gyroYData = new Array();
         var gyroZData = new Array();
         var tempData = new Array();
-        var maxDataPoints = 100;
+        var maxDataPoints = 20;
         function createGraph(divId, title, yTitle, traces) {
                 var layout = { title: title, xaxis: { title: 'Time' }, yaxis: { title: yTitle } };
                 Plotly.newPlot(divId, traces, layout);
